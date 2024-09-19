@@ -1,0 +1,5 @@
+type: RegularizedEvolution
+params:
+  population_size: 100
+  subset_size: 30
+  ncycles: 1000
