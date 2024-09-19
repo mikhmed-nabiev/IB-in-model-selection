@@ -1,2 +1,6 @@
 .idea/*
 papers/*
+junk/*
+.vscode/*
+outputs/*
+*/__pycache__/*
