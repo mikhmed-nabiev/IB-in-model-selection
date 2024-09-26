@@ -4,3 +4,4 @@ junk/*
 .vscode/*
 outputs/*
 */__pycache__/*
+*.png
