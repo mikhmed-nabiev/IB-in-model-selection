@@ -30,6 +30,7 @@ class Pool:
         self._scalars[index] = value 
         
     def set_scalars(self, values: np.array):
+        # print(values)
         assert values.shape == self._scalars.shape
         self._scalars = deepcopy(values)
         
@@ -54,8 +55,20 @@ class Pool:
     
     def get_vectors(self, indices: list = None):
         if indices is None:
-            return self.vectors 
+            return self._vectors 
         return self._vectors[indices]
+
+    @property
+    def nscalars(self):
+        return self._nscalars
+
+    @property    
+    def nvectors(self):
+        return self._nvectors
+    
+    @property
+    def nfeatures(self):
+        return self._nfeatures
 
     # Pretty print pool state
     def __repr__(self):

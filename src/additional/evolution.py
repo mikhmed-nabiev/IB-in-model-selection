@@ -1,11 +1,11 @@
 import numpy as np
 from copy import deepcopy
 from typing import Callable
+from tqdm import tqdm
 
-from src.utils import is_current_model_degenerate, get_best_model
-from src.mutator import Mutator
-from src.model import Model
-from src.memory_pool import Pool
+from src.model.model import Model
+from src.additional.memory_pool import Pool
+from src.additional.utils import is_current_model_degenerate, get_best_model
 
 class RegularizedEvolution:
   """
@@ -14,7 +14,6 @@ class RegularizedEvolution:
 
   def __init__(
     self, 
-    mutator: Mutator,
     pool: Pool,
     population_size: int, 
     subset_size: int, 
@@ -33,7 +32,6 @@ class RegularizedEvolution:
     
     self._history = []
     self._population = []
-    self._mutator = mutator
     self._pool = pool
     self._psize = population_size
     self._ssize = subset_size
@@ -49,7 +47,7 @@ class RegularizedEvolution:
     """Initialize population with empty models."""
 
     while len(self._population) < self._psize:
-      model = Model()
+      model = Model(self._pool.nscalars, self._pool.nvectors, self._pool.nfeatures)
       mean_loss = model.evaluate(
         pool=self._pool,
         tr_data=tr_data,
@@ -68,12 +66,12 @@ class RegularizedEvolution:
   ):
     """Run regularized evolution"""
 
-    while len(self._history) < self._cnum:
+    for _ in tqdm(range(self._cnum)):
       candidates = np.random.choice(self._population, size=self._ssize)
       best_model = get_best_model(candidates)
       child = deepcopy(best_model)
 
-      child = self._mutator.mutate(child)
+      child.mutate(self._pool)
       mean_loss = child.evaluate(
         pool=self._pool,
         tr_data=tr_data,
@@ -82,7 +80,7 @@ class RegularizedEvolution:
         loss=loss_func
       )
       while is_current_model_degenerate(self._pool):
-        child = self._mutator.mutate(child)
+        child.mutate(self._pool)
         mean_loss = child.evaluate(
           pool=self._pool,
           tr_data=tr_data,
