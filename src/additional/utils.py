@@ -16,13 +16,19 @@ def is_current_model_degenerate(pool: Pool) -> bool:
   Checks pool to see whether calculations with current model(setup, predict, learn) 
   produce degenerate values
   """
+  MAX_VALUE = 1e4
 
   scalars = pool.get_scalars()
-  vectors = pool.get_vectors().flatten()
-  values = np.concatenate((scalars, vectors))
-  for elem in values:
-    if elem is np.nan or elem is np.inf or elem is -np.inf:
+  scalars_norm = np.linalg.norm(scalars)
+  if np.isnan(scalars_norm) or scalars_norm >= MAX_VALUE * MAX_VALUE:
+    return True
+  
+  vectors = pool.get_vectors()
+  for vector in vectors:
+    vector_norm = np.linalg.norm(vector)
+    if np.isnan(vector_norm) or vector_norm >= MAX_VALUE * MAX_VALUE:
       return True 
+    
   return False
 
 def get_best_model(models: List[Model]) -> Model:
