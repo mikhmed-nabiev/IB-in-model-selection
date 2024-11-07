@@ -6,7 +6,8 @@ import pickle
 from pathlib import Path
 from omegaconf import OmegaConf, DictConfig
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score
+from sklearn.datasets import make_circles, make_moons
+from sklearn.metrics import accuracy_score, classification_report
 
 from src.config import EVOLUTION_TYPES
 from src.additional.memory_pool import Pool
@@ -22,18 +23,30 @@ def main(cfg: DictConfig):
 
   ### Create binary classification dataset
   logger.info("Creating dataset")
+
   n_samples = cfg.dataset.nsamples
-  mean1 = np.random.randn(2)
-  mean2 = np.random.randn(2)
-  cov = np.random.randn(2, 2)
-  X1 = np.random.multivariate_normal(mean1, cov.T @ cov, n_samples)
-  X2 = np.random.multivariate_normal(mean2, cov.T @ cov, n_samples)
-  X = np.vstack((X1, X2))
-  y = np.hstack((np.zeros(n_samples), np.ones(n_samples)))
-  dataset = np.hstack((X, y.reshape(len(y), 1)))
-  np.random.shuffle(dataset)
+
+  # mean1 = np.random.randn(2)
+  # mean2 = np.random.randn(2)
+  # cov = np.random.randn(2, 2)
+  # X1 = np.random.multivariate_normal(mean1, cov.T @ cov, n_samples)
+  # X2 = np.random.multivariate_normal(mean2, cov.T @ cov, n_samples)
+  # X = np.vstack((X1, X2))
+  # y = np.hstack((np.zeros(n_samples), np.ones(n_samples)))
+  # dataset = np.hstack((X, y.reshape(len(y), 1)))
+  # np.random.shuffle(dataset)
+
+  X, y = make_circles(n_samples=n_samples, noise=0.1, factor=0.4, random_state=0)
+  # X, y = make_moons(n_samples=n_samples, noise=0.2, random_state=42)
+  dataset = np.hstack([X, y[:, np.newaxis]])
+
   dtrain = dataset[: int(0.8 * n_samples)]
   dvalid = dataset[: int(0.2 * n_samples)]
+
+  X, y = make_circles(n_samples=int(n_samples * 0.1), noise=0.1, factor=0.4, random_state=42)
+  # X, y = make_moons(n_samples=int(n_samples * 0.3), noise=0.2, random_state=0)
+  test = np.hstack([X, y[:, np.newaxis]])
+
   logger.info("Done creating datset")
 
   logger.info("Running evolution")
@@ -51,20 +64,29 @@ def main(cfg: DictConfig):
 
   # Compute accuracy for the best model
   best_model = get_best_model(history)
-  logger.info(f"Best model accuracy on validation data: {accuracy_score(dvalid[:, -1], get_prediction(best_model, pool, dvalid, sigmoid))}")
+  preds = np.array(get_prediction(best_model, pool, test, sigmoid)).astype(float)
+  logger.info(f"Predictions: {preds}")
+  logger.info(f"True: {test[:, -1]}")
+  logger.info(f"Best model report on validation data: {classification_report(test[:, -1], preds)}")
   logger.info(best_model)
 
-  # Save history 
+
   logger.info("Saving results to pickle file")
+  # Save history 
   with open(output_dir / "history", "wb") as fp:
     pickle.dump(history, fp)
+  # Save model
+  with open(output_dir / "best_model", "wb") as fp:
+    pickle.dump(best_model, fp)
 
   logger.info("Plotting results to result.png")
   losses = []
   for exp in history:
       losses.append(exp["loss"])
   plt.figure(figsize=(16, 7))
-  plt.plot(np.arange(len(losses)),losses);
+  plt.plot(np.arange(len(losses)),losses)
+  plt.xlabel("Cycles")
+  plt.ylabel(f"{abs_loss.__name__}")
   plt.savefig(output_dir / "result.png")
 
   logger.info("Experiment completed successfully")

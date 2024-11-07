@@ -12,4 +12,6 @@ pool:
 
 hydra:
   run:
-    dir: ./outputs/${evolution.type}/population=${evolution.params.population_size}_subset=${evolution.params.subset_size}_cycles=${evolution.params.ncycles}
+    dir: ./outputs/circles/penalty/${evolution.type}/population=${evolution.params.population_size}_subset=${evolution.params.subset_size}_cycles=${evolution.params.ncycles}
+
+    # dir: ./outputs/circles_dataset/${evolution.type}/population=${evolution.params.population_size}_subset=${evolution.params.subset_size}_cycles=${evolution.params.ncycles}
