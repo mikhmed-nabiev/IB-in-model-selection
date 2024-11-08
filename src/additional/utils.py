@@ -20,13 +20,13 @@ def is_current_model_degenerate(pool: Pool) -> bool:
 
   scalars = pool.get_scalars()
   scalars_norm = np.linalg.norm(scalars)
-  if np.isnan(scalars_norm) or scalars_norm >= MAX_VALUE * MAX_VALUE:
+  if np.isnan(scalars_norm) or scalars_norm >= MAX_VALUE:
     return True
   
   vectors = pool.get_vectors()
   for vector in vectors:
     vector_norm = np.linalg.norm(vector)
-    if np.isnan(vector_norm) or vector_norm >= MAX_VALUE * MAX_VALUE:
+    if np.isnan(vector_norm) or vector_norm >= MAX_VALUE:
       return True 
     
   return False

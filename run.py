@@ -36,15 +36,15 @@ def main(cfg: DictConfig):
   # dataset = np.hstack((X, y.reshape(len(y), 1)))
   # np.random.shuffle(dataset)
 
-  X, y = make_circles(n_samples=n_samples, noise=0.1, factor=0.4, random_state=0)
-  # X, y = make_moons(n_samples=n_samples, noise=0.2, random_state=42)
+  # X, y = make_circles(n_samples=n_samples, noise=0.1, factor=0.4, random_state=0)
+  X, y = make_moons(n_samples=n_samples, noise=0.2, random_state=42)
   dataset = np.hstack([X, y[:, np.newaxis]])
 
   dtrain = dataset[: int(0.8 * n_samples)]
   dvalid = dataset[: int(0.2 * n_samples)]
 
-  X, y = make_circles(n_samples=int(n_samples * 0.1), noise=0.1, factor=0.4, random_state=42)
-  # X, y = make_moons(n_samples=int(n_samples * 0.3), noise=0.2, random_state=0)
+  # X, y = make_circles(n_samples=int(n_samples * 0.1), noise=0.1, factor=0.4, random_state=42)
+  X, y = make_moons(n_samples=int(n_samples * 0.3), noise=0.2, random_state=0)
   test = np.hstack([X, y[:, np.newaxis]])
 
   logger.info("Done creating datset")
@@ -54,7 +54,9 @@ def main(cfg: DictConfig):
   pool = Pool(cfg.pool.nscalars, cfg.pool.nvectors, cfg.dataset.nfeatures)
   evolution = EVOLUTION_TYPES[cfg.evolution.type](
     pool=pool,
-    **cfg.evolution.params
+    max_learn_length=cfg.model.max_learn_length,
+    max_predict_length=cfg.model.max_predict_length,
+    **cfg.evolution.params,
   )
 
   # Run evolution

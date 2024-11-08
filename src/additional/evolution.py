@@ -17,7 +17,9 @@ class RegularizedEvolution:
     pool: Pool,
     population_size: int, 
     subset_size: int, 
-    ncycles: int
+    ncycles: int,
+    max_learn_length: int = None,
+    max_predict_length: int = None
   ):
     """
     Initialize parameters for regularized evolution
@@ -36,6 +38,8 @@ class RegularizedEvolution:
     self._psize = population_size
     self._ssize = subset_size
     self._cnum = ncycles
+    self._max_learn_len = max_learn_length
+    self._max_predict_len = max_predict_length
 
   def initialize_population(
     self, 
@@ -47,7 +51,13 @@ class RegularizedEvolution:
     """Initialize population with empty models."""
 
     while len(self._population) < self._psize:
-      model = Model(self._pool.nscalars, self._pool.nvectors, self._pool.nfeatures)
+      model = Model(
+        self._pool.nscalars, 
+        self._pool.nvectors, 
+        self._pool.nfeatures,
+        self._max_learn_len,
+        self._max_predict_len
+      )
       mean_loss = model.evaluate(
         pool=self._pool,
         tr_data=tr_data,

@@ -69,9 +69,12 @@ class Learn(Function):
   Class Learn learns weights from data.
   """
 
-  def __init__(self):
+  def __init__(self, max_length: int):
     self._functions = []
     self._args = []
+    self._max_len = max_length
+    if self._max_len is None:
+      self._max_len = np.inf
 
 
   def _add_or_remove_func(self, pool: Pool):
@@ -79,7 +82,7 @@ class Learn(Function):
     nvectors = pool.nvectors
     type = np.random.choice(["add", "remove"], p=[0.7, 0.3])
 
-    if type == "add" or len(self._functions) == 0:
+    if type == "add" and len(self._functions) < self._max_len or len(self._functions) == 0:
       func_idx = np.random.choice(np.arange(N_OPS))
       self._functions.append(func_idx)
       
@@ -237,15 +240,17 @@ class Model:
     self, 
     nscalars: int, 
     nvectors: int, 
-    nfeatures: int
+    nfeatures: int,
+    max_learn_len: int,
+    max_predict_len: int
   ):
     """
     Initialize the triple. All functions initially are empty.
     """
 
     self._setup = Setup(nscalars, nvectors, nfeatures)
-    self._learn = Learn()
-    self._predict = Predict()
+    self._learn = Learn(max_learn_len)
+    self._predict = Predict(max_predict_len)
 
   def setup(self, pool: Pool):
     self._setup.eval_func(pool)
@@ -279,8 +284,8 @@ class Model:
     return mean_loss
 
   def mutate(self, pool: Pool):
-    self._learn.mutate(pool)
     self._setup.mutate(pool)
+    self._learn.mutate(pool)
     self._predict.mutate(pool)
 
   def _train(
