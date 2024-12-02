@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Callable
+from typing import Callable, List, Tuple
 from copy import deepcopy
 from abc import ABC, abstractmethod
 
@@ -314,8 +314,10 @@ class Model:
   def evaluate(
     self,
     pool: Pool,
-    tr_data: np.ndarray,
-    val_data: np.ndarray,
+    # tr_data: np.ndarray,
+    # val_data: np.ndarray,
+    train_datasets: List[np.ndarray],
+    valid_datasets: List[np.ndarray],
     normalize: Callable,
     loss: Callable
   ):
@@ -329,8 +331,16 @@ class Model:
       normalize: Normalization function
       loss: Loss function
     """
-    self._train(pool, tr_data, normalize)
-    return self._validate(pool, val_data, normalize, loss)
+    for train in train_datasets:
+      self._train(pool, train, normalize)
+
+    val_accuracy = 0
+    for valid in valid_datasets:
+      val_accuracy += self._validate(pool, valid, normalize, loss)
+
+      val_accuracy  = val_accuracy / len(valid_datasets)
+
+    return val_accuracy
   
   def __repr__(self) -> str:
     return f"""
