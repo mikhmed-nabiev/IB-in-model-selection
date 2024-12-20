@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score, classification_report
 
 from src.config import EVOLUTION_TYPES
 from src.additional.memory_pool import Pool
-from src.additional.utils import sigmoid, abs_loss, get_best_model, get_prediction
+from src.additional.utils import sigmoid, abs_loss, get_best_model, get_prediction, acc_loss, rnd
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ def main(cfg: DictConfig):
 
   datasets = np.random.permutation(datasets)
 
-  X, y = make_circles(n_samples=int(n_samples * 0.3), noise=0.1, factor=0.4, random_state=42)
+  X, y = make_circles(n_samples=int(n_samples), noise=0.1, factor=0.4, random_state=42)
   # X, y = make_moons(n_samples=int(n_samples * 0.3), noise=0.2, random_state=42)
 
   # mean1 = np.random.randn(2)
@@ -90,7 +90,9 @@ def main(cfg: DictConfig):
   # y = np.hstack((np.zeros(n_samples), np.ones(n_samples)))
   # dataset = np.hstack((X, y.reshape(len(y), 1)))
 
-  test = np.hstack([X, y[:, np.newaxis]])
+  # test = np.hstack([X, y[:, np.newaxis]])
+  train = np.hstack([X[:n_samples//2], y[:n_samples//2, np.newaxis]])
+  test = np.hstack([X[n_samples//2:], y[n_samples//2:, np.newaxis]])
 
   logger.info("Done creating datset")
 
@@ -106,15 +108,23 @@ def main(cfg: DictConfig):
   )
 
   # Run evolution
-  # evolution.initialize_population(tr_data=dtrain, val_data=dvalid, normalize=sigmoid, loss_func=abs_loss)
   evolution.initialize_population(normalize=sigmoid, loss_func=abs_loss)
   # evolution.run_evolution(dtrain, dvalid, sigmoid, abs_loss)
-  evolution.run_evolution(normalize=sigmoid, loss_func=abs_loss)
+  evolution.run_evolution(normalize=rnd, loss_func=acc_loss)
   history = evolution.get_history()
 
   # Compute accuracy for the best model
   best_model = get_best_model(history)
-  preds = np.array(get_prediction(best_model, pool, test, sigmoid)).astype(float)
+  # preds = np.array(get_prediction(best_model, pool, test, sigmoid)).astype(float)
+  preds = best_model.train_evaluate(
+    pool=pool,
+    train_datasets=[train],
+    valid_datasets=[test],
+    normalize=rnd,
+    loss=acc_loss,
+    return_predictions=True
+  )
+  preds = np.array(preds).astype(np.float32)
   logger.info(f"Predictions: {preds}")
   logger.info(f"True: {test[:, -1]}")
   logger.info(f"Best model report on validation data: {classification_report(test[:, -1], preds)}")
@@ -136,7 +146,8 @@ def main(cfg: DictConfig):
   plt.figure(figsize=(16, 7))
   plt.plot(np.arange(len(losses)),losses)
   plt.xlabel("Cycles")
-  plt.ylabel(f"{abs_loss.__name__}")
+  plt.title("Accuracy")
+  plt.ylabel(f"1 - mean accuracy")
   plt.savefig(output_dir / "result.png")
 
   logger.info("Experiment completed successfully")

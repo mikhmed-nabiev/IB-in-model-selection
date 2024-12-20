@@ -11,6 +11,12 @@ def sigmoid(x):
 def abs_loss(true, predicted):
   return abs(predicted - true)
 
+def rnd(x):
+  return x > 0
+
+def acc_loss(true, predicted):
+  return 1.0 - np.equal(true, predicted).mean()
+
 def is_current_model_degenerate(pool: Pool) -> bool:
   """
   Checks pool to see whether calculations with current model(setup, predict, learn) 

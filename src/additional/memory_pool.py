@@ -1,5 +1,5 @@
 import numpy as np
-from copy import deepcopy
+from copy import copy
 
 class Pool:
     """Memory pool for models to access."""
@@ -32,14 +32,14 @@ class Pool:
     def set_scalars(self, values: np.array):
         # print(values)
         assert values.shape == self._scalars.shape
-        self._scalars = deepcopy(values)
+        self._scalars = copy(values)
         
     def set_vector(self, index: int, value: np.array):
-        self._vectors[index] = deepcopy(value)
+        self._vectors[index] = copy(value)
         
     def set_vectors(self, values: np.array):
         assert values.shape == self._vectors.shape
-        self._vectors = deepcopy(values)
+        self._vectors = copy(values)
         
     # Getting variables
     def get_scalar(self, index: int):

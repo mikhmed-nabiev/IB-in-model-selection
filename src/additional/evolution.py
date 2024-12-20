@@ -45,12 +45,20 @@ class RegularizedEvolution:
 
   def _split_train_valid(self, datasets: List[np.ndarray]):
 
-    train_size = int(len(datasets) * 0.7)
-    train_datasets, valid_datasets = datasets[: train_size], datasets[train_size: ]
+    # train_size = int(len(datasets) * 0.7)
+    train_size = int(np.round(len(datasets) * 0.7))
+    assert train_size > 0
 
-    if train_size == 1:
-      train_datasets = [datasets[0][: int(0.7 * len(datasets[0]))]]
-      valid_datasets = [datasets[0][int(0.7 * len(datasets[0])) :]]
+    # train_datasets, valid_datasets = datasets[: train_size], datasets[train_size: ]
+    train_datasets, valid_datasets = [], []
+
+    for dataset in datasets:
+      train_datasets.append(dataset[: int(0.7 * len(dataset))])
+      valid_datasets.append(dataset[int(0.7 * len(dataset)) :])
+
+    # if train_size == 1:
+    #   train_datasets = [datasets[0][: int(0.7 * len(datasets[0]))]]
+    #   valid_datasets = [datasets[0][int(0.7 * len(datasets[0])) :]]
     
     return train_datasets, valid_datasets
 
@@ -69,7 +77,7 @@ class RegularizedEvolution:
         self._max_learn_len,
         self._max_predict_len
       )
-      mean_loss = model.evaluate(
+      mean_loss = model.train_evaluate(
         pool=self._pool,
         train_datasets=self._train_datasets,
         valid_datasets=self._valid_datasets,
@@ -85,28 +93,36 @@ class RegularizedEvolution:
   ):
     """Run regularized evolution"""
 
-    for _ in tqdm(range(self._cnum)):
+    best_loss = None 
+    tq = tqdm(range(self._cnum))
+
+    for _ in tq:
       candidates = np.random.choice(self._population, size=self._ssize)
       best_model = get_best_model(candidates)
       child = deepcopy(best_model)
 
       child.mutate(self._pool)
-      mean_loss = child.evaluate(
+      mean_loss = child.train_evaluate(
         pool=self._pool,
         train_datasets=self._train_datasets,
         valid_datasets=self._valid_datasets,
         normalize=normalize,
         loss=loss_func
       )
-      while is_current_model_degenerate(self._pool):
-        child.mutate(self._pool)
-        mean_loss = child.evaluate(
-          pool=self._pool,
-          train_datasets=self._train_datasets,
-          valid_datasets=self._valid_datasets,
-          normalize=normalize,
-          loss=loss_func
-        )
+
+      if best_loss is None or mean_loss < best_loss:
+        best_loss = mean_loss
+
+      tq.set_description(str(best_loss))
+      # while is_current_model_degenerate(self._pool):
+      #   child.mutate(self._pool)
+      #   mean_loss = child.evaluate(
+      #     pool=self._pool,
+      #     train_datasets=self._train_datasets,
+      #     valid_datasets=self._valid_datasets,
+      #     normalize=normalize,
+      #     loss=loss_func
+      #   )
 
       self._population.pop(0)
       self._history.append({"model": child, "loss": mean_loss})

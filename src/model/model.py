@@ -35,7 +35,6 @@ class Setup(Function):
     self._vectors = np.zeros(shape=(self._nvectors, self._nfeatures))
 
   def _change_weights(self):
-    # print(self._scalars)
     for i in range(len(self._scalars)):
       self._scalars = np.random.uniform(low=-10, high=10, size=self._nscalars) # maybe should add low and high as parameters
 
@@ -266,9 +265,11 @@ class Model:
     pool: Pool,
     val_data: np.ndarray,
     normalize: Callable,
-    loss: Callable
+    loss: Callable,
+    return_predictions: bool = False
   ):
     sum_loss = 0.0
+    preds = [] 
     for row in val_data:
       x = row[:-1]
       y = row[-1]
@@ -278,8 +279,14 @@ class Model:
       s1 = pool.get_scalar(index=1) # predict always lies in address s1
       s1 = normalize(s1)
     
+      if return_predictions:
+        preds.append(s1)
+
       sum_loss += loss(y, s1)
       
+    if return_predictions:
+        return preds 
+    
     mean_loss = sum_loss / len(val_data)
     return mean_loss
 
@@ -311,7 +318,7 @@ class Model:
       self.learn(pool)
       self._setup.set_weights(pool)
 
-  def evaluate(
+  def train_evaluate(
     self,
     pool: Pool,
     # tr_data: np.ndarray,
@@ -319,10 +326,11 @@ class Model:
     train_datasets: List[np.ndarray],
     valid_datasets: List[np.ndarray],
     normalize: Callable,
-    loss: Callable
+    loss: Callable,
+    return_predictions: bool = False
   ):
     """
-    Evaluate model on one task.
+    Train and evaluate model on one task.
 
     Args:
       pool: Pool of available variables to use
@@ -331,14 +339,40 @@ class Model:
       normalize: Normalization function
       loss: Loss function
     """
-    for train in train_datasets:
+    val_accuracy = 0
+
+    if return_predictions:
+      assert len(valid_datasets) == 1
+
+    for train, valid in zip(train_datasets, valid_datasets):
       self._train(pool, train, normalize)
 
-    val_accuracy = 0
-    for valid in valid_datasets:
-      val_accuracy += self._validate(pool, valid, normalize, loss)
+      if return_predictions:
+        preds = self._validate(
+          pool,
+          valid, 
+          normalize,
+          loss,
+          return_predictions
+        )
+        return preds 
+      else:
+        val_accuracy += self._validate(
+          pool,
+          valid,
+          normalize,
+          loss, 
+          return_predictions
+        )
 
-      val_accuracy  = val_accuracy / len(valid_datasets)
+    # for train in train_datasets:
+      # self._train(pool, train, normalize)
+
+    # val_accuracy = 0
+    # for valid in valid_datasets:
+      # val_accuracy += self._validate(pool, valid, normalize, loss)
+
+    val_accuracy  = val_accuracy / len(valid_datasets)
 
     return val_accuracy
   

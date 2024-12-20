@@ -1,7 +1,7 @@
 .idea/*
-papers/*
 junk/*
 .vscode/*
 outputs/*
 __pycache__/
 *.png
+bib/
