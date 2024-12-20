@@ -1,0 +1,160 @@
+\documentclass{article}
+\usepackage{arxiv}
+
+\usepackage[utf8]{inputenc}
+% \usepackage[russian]{babel}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{bm}
+\usepackage{mathrsfs}
+\usepackage{lipsum}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{wrapfig}
+\usepackage{doi}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage[dvipsnames]{xcolor}
+
+\title{Inductive Bias in Model Selection}
+
+\author{
+    Muhammadsharif Nabiev \\
+    Department of Intelligent Systems\\
+    MIPT\\
+    \texttt{nabiev.mf@phystech.edu} \\
+    % \And
+    % Oleg Bakhteev \\
+    % Department of Intelligent Systems\\
+    % MIPT\\
+    \texttt{} \\
+}
+\date{}
+
+\renewcommand{\shorttitle}{Inductive bias in model selection}
+
+\hypersetup{
+pdftitle={Inductive bias in model selection},
+pdfsubject={q-bio.NC, q-bio.QM},
+pdfauthor={Muhammadsharif},
+pdfkeywords={model selection, evolutionary algorithm},
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+
+This paper is devoted to the problem of choosing the architecture of suboptimal models in multitask learning paradigm. The assumption is introduced that when searching for models in the search space of a sufficiently high dimension, the resulting model architecture will reflect the features of the analyzed data, which can be interpreted as an inductive bias of the model. An automatic procedure can be employed using evolutionary method of searching for a model based on symbolic regression algorithms. Model trains independently on a set of given datasets of a particular class. 
+
+% Inductive bias играет ключевую роль для обобщения модели, так как разнородные данные имеют свои уникальные отличительные черты, которые отличают одни данные от других. В данной работе мы предлагаем автоматизированный подход к выявлению inductive bias в наборе данных, используя модифицированную версию AutoML-Zero. AutoML-Zero - эволюционный алгоритм, который автоматически проектирует модели для решения задачи на заданных данных. Мы предлагаем следующие модификации \textcolor{red}{need to write more}
+
+% another version 
+% This paper addresses the challenge of selecting optimal model architectures within the multitask learning paradigm. We propose that, when exploring model architectures in a high-dimensional search space, the resultant models will inherently reflect the characteristics of the data being analyzed. This phenomenon can be understood as the model's inductive bias. We introduce an automated approach leveraging evolutionary algorithms in combination with symbolic regression to facilitate the search for appropriate models. Our methodology allows models to be trained independently on diverse datasets within a specific class, thus enhancing generalizability and adaptability.
+
+\end{abstract}
+
+\keywords{model selection \and evolutionary algorithm}
+
+\section{Introduction} 
+The concept of inductive bias is a fundamental tenet in the realm of machine learning, encapsulating the core assumptions that underpin the methodology adopted by a particular model in its predictive endeavours, extending beyond the boundaries of explicitly observed data. Understanding and leveraging inductive bias is essential for enhancing model performence, especially in complex environments where data may exhibit diverse characteristics. 
+
+In recent years, the field of machine learning has experienced rapid advancements driven by the development of sophisticated algorithms and architectures capable of tackling a wide range of tasks, from natural language processing to computer vision. However, the design and optimization of these models often require significant expertise and resources, leading to the rise of automated machine learning (AutoML) systems. These systems aim to alleviate the burden of manual model selection and tuning, enabling broader accessibility to machine learning techniques.
+
+One notable approach is AutoML-Zero, which autonomously constructs models using a genetic programming framework, assembling them from fundamental mathematical operations \citep{automl-zero}. This method represents a significant departure from traditional model selection paradigms, which typically rely on predefined structures or human intuition. By allowing the model architecture to emerge organically from the data, AutoML-Zero minimizes biases introduced by prior knowledge, potentially leading to the discovery of novel architectures better suited to the task at hand.
+
+The concept of inductive bias plays a crucial role in model generalization. Different datasets often possess unique distinguishing features that can be exploited for improved performance. For instance, models trained on image data may benefit from biases related to spatial hierarchies, while those handling sequential data, such as time series or text, may rely on temporal dependencies. Recognizing and systematically integrating these biases into the model selection process can facilitate the identification of suboptimal yet effective architectures.
+
+In this paper, we investigate how inductive biases inherent in the data can inform model selection within the multitask learning framework. We propose an automated approach that leverages evolutionary algorithms in conjunction with symbolic regression to explore a diverse range of model architectures. By allowing models to train independently on various datasets within a specific class, our methodology aims to enhance generalizability and adaptability while reducing the need for extensive manual tuning.
+
+The experiments are focused on a range of datasets that capture different characteristics, enabling a robust evaluation of how well our models generalize across tasks. The goal is to provide insights into the relationship between inductive bias and model architecture.
+
+% Inductive bias является фундаментальной концепцией в машинном обучении, определяющей предположения, которые модель делает для обобщения данных за пределами наблюдаемых примеров.[\textcolor{red}{need to ref papers}] 
+
+
+% Сфера машинного обучения в последние годы претерпела значительные изменения, вызванные развитием сложных моделей и алгоритмов, предназначенных для решения самых разнообразных задач. Однако проектирование и оптимизация таких моделей вручную зачастую требуют значительных усилий и времени, что стимулирует рост автоматизированных систем машинного обучения (AutoML). Однако автоматический поиск модели в все еще требует человеческого вмешательства при инициализации пространства поиска или указании заранее созданных шаблонов. Статья\citep{automl-zero} описывает подход, который требует значительно меньшей настройки. Алгоритм собирает модель из математических операций для решения задач. Такой подход не накладывает никакие ограничения на структуру модели.
+
+% TODO
+
+% С помощью модели AutoML-Zero сделали autobert\citep{autobert} и automl4robotics\citep{automl4robots}
+    
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=1\textwidth]{model.png}
+    \caption{Pipeline.}
+    \label{pipeline}
+\end{figure}
+\section{Problem statement}
+
+Let \( \mathfrak{T} = \{T_1, T_2, \dots, T_n\} \) be a set tasks. Each task \( T_i \) has its corresponding dataset \( \mathfrak{D}_i \), where \( \mathfrak{D}_i = \{(\mathbf{x}_j, y_j) \}_{j=1}^{N_i} \) represents \( N_i \) examples of input-output pairs. We will denote a meta-learner as \( \mathcal{E} \) and an analyzer as \(\mathbf{f}_{\text{CLF}}\). The meta-learner \(\mathcal{E}\) constructs a candidate models given the datasets. Inductive bias then infered by the \(\mathbf{f}_{\text{CLF}}\).
+
+\subsection{Meta-Learner}
+Let \(\mathfrak{F}\) be the family of all models. The model is defined by three functions: \texttt{Setup}, \texttt{Learn} and \texttt{Predict}. The meta-learner \(\mathcal{E}: 2^{\mathfrak{D}} \rightarrow \mathfrak{F}\) is based on AutoML-Zero algorithm. The algorithm incorporates evolutionary search method on training datasets to generate candidate models, which are then selected and mutated based on their accuracy on test datasets. Evolutionary search is conducted as follows:
+\begin{itemize}
+    \item Initialization: Generate an initial population of models \( \mathcal{F}_0 \subset \mathfrak{F} \) of size \(P\).
+    \item Evaluation: During each evolution cycle asses each model \( f \in \mathcal{F}_t \) using accuracy metric, where \(\mathcal{F}_t\) is the population at t-th cycle.
+    \item Mutation: Select the best model and mutate it to product a child model. To keep the population size fixed, the oldest model is replaced by the child model. (details about mutation can be put in apendix)
+    \item Termination: Repeat for \(C\) cycles and select the best model \( f^* \) accross all cycles.
+\end{itemize}
+The best model is found based on mean accuracy. If we have \(m_2\) test datasets then the metric on a set of tasks can be computed as 
+\[
+ \operatorname{mACC}(f, \mathfrak{D}) = \frac{1}{m_2} \sum_{i = 1}^{m_2} \operatorname{ACC}(f, \mathfrak{D}_i)
+    = \frac{1}{m_2} \sum_{i=1}^{m_2} \sum_{j=1}^{N_i} \frac{[f(\mathbf{x}_j) = y_j]}{N_i}
+\]
+Hence, the optimization in this stage can be written as 
+\[
+    f^* = \arg \max_{f \in \mathfrak{F}} \operatorname{mACC}(f, \mathfrak{D}).
+\]
+
+\subsection{Analyzer}
+Given the best model \(\mathbf{f}^*\) we can infer an inductive bias of the tasks. We categorized inductive biases into three categories: RBF, CNN and RNN. The inference is done by analyzer \(\mathbf{f}_{\text{CLF}}\) which was selected to be [MODEL] model. 
+
+By getting an internal represention of the best model \(f^*\), i.e. the funcitons comprising \texttt{Setup}, \texttt{Predict} and \texttt{Learn}, we use [MODEL] to infer the inductive bias hidden in the representation. 
+
+OR. Try to make map internal representation of the funcitons into latent space. Maybe functinos with the same inductive biases will cluster?
+
+% Let \( \mathcal{F} \) be the family of all models. The meta-learner \( \mathcal{E} : 2^D \rightarrow \mathcal{F}  \) is based on AutoML-Zero algorithm. Given train datasets \(D_{train} \subset D = \{D_1, D_2, \dots, D_n \}\) the meta-learner \(\mathcal{E}\) generates candidate models \( \{ f_1, f_2, \dots, f_{P}\} \), which are then evaluated on test datasets \(D_{test} \subset D\). The best model \(f_i\) is selected based on mean accuracy and mutated to produce a child algorithm. 
+
+
+
+% Let \( \mathfrak{T} = \{T_1, T_2, \dots, T_n\} \) be a set tasks. Each task \( T_i \) has its corresponding dataset \( \mathfrak{D}_i \), where \( \mathfrak{D}_i = \{(\mathbf{x}_j, y_j) \}_{j=1}^{N_i} \) represents \( N_i \) examples of input-output pairs. We will denote meta-learner as \( \mathcal{E} \) and \( \mathcal{M} \) as a space of all possible models. The task is to classify the bias of the given tasks \(\mathfrak{T}\).
+
+% Let \( \mathcal{F} \) be the family of all models. The meta-learner \( \mathcal{E} : 2^D \rightarrow \mathcal{F}  \) is based on AutoML-Zero algorithm. Given train datasets \(D_{train} \subset D = \{D_1, D_2, \dots, D_n \}\) the meta-learner \(\mathcal{E}\) generates candidate models \( \{ f_1, f_2, \dots, f_{P}\} \), which are then evaluated on test datasets \(D_{test} \subset D\). The best model \(f_i\) is selected based on mean accuracy and mutated to produce a child algorithm. 
+
+% Classifier \( \operatorname{Clf} \) aims to extract inductive bias from models , i.e. \( \operatorname{Clf}(f_1, f_2, \dots, f_n) = \hat{b} \). (AutoML-Zero for classifier too?).
+
+% To facilitate model search, we utilize an evolutionary algorithm \( \mathcal{E} \) that iteratively explores and refines potential architectures based on their performance on a given task. The evolutionary process can be summarized as:
+
+% \begin{itemize}
+%     \item Initialization: Generate an initial population of models \( P_0 \subset \mathcal{M} \).
+%     \item Evaluation: Asses each model \( M \in P_t \) using appropriate loss function or metric.
+%     \item Selection: Select a subset of models based on their score.
+%     \item Mutation: Apply genetic operations to produce a new generation of models \( P_{t+1} \).
+%     \item Termination: Repeat until convergence criteria are met, yielding the final model architecture \( M*\).
+% \end{itemize}
+
+% Thus, the core of our problem is to efficiently navigate the architecture space \( \mathcal{M} \), guided by inductive bias \(b\), in order to discover the best models. 
+
+\section{Model description} 
+
+\section{Computational experiment}
+    \subsection{Data}
+    Suppose \(\{ \mathfrak{D}_1, \mathfrak{D}_2, \dots, \mathfrak{D}_n\} \) are the datasets.
+    The datasets have same inductive bias but they differ from each other by some property.  We select \(m_1\) elements from each dataset to form a set of training datsets \(\mathfrak{D}_{train}\), and from a remaining part we get a set of testing datasets \(\mathfrak{D}_{test}\).
+  
+    \subsection{Experiments}
+    We conducted experiment for binary classification task using concentrated circles datasets. The datasets have different center position of the circles and noise parameters.  
+
+    \subsection{Results of the experiments}
+
+\section{Conclusion}
+
+\bibliographystyle{plain}
+\bibliography{ib_in_model_selection}
+
+\end{document}
